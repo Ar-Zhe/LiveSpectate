@@ -1,0 +1,92 @@
+plugins {
+    id 'java-library'
+    id 'net.neoforged.moddev' version '2.0.144'
+}
+
+group = 'com.livespectate'
+version = '1.1.1'
+base {
+    archivesName = 'livespectate-neoforge-1.21.1'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        name = 'NeoForged'
+        url = 'https://maven.neoforged.net/releases'
+    }
+    maven {
+        name = 'Mojang'
+        url = 'https://libraries.minecraft.net'
+    }
+}
+
+neoForge {
+    // NeoForge for Minecraft 1.21.1
+    version = '21.1.248'
+
+    // Mojang official mappings are the default; no parchment needed for a server-side mod.
+    runs {
+        client {
+            client()
+        }
+        server {
+            server()
+        }
+    }
+
+    mods {
+        livespectate {
+            sourceSet sourceSets.main
+        }
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 21
+}
+
+tasks.named('jar', Jar) {
+    manifest {
+        attributes([
+                'Specification-Title'   : 'LiveSpectate',
+                'Specification-Version' : '1',
+                'Implementation-Title'  : 'LiveSpectate',
+                'Implementation-Version': project.version
+        ])
+    }
+}
+
+// ---------------------------------------------------------------------------
+// 閺堝秴濮熺粩顖滅翱缁犫偓閻楀牞绱檚erver-only閿?//
+// 閸氬奔绔存稉顏吥佺紒鍕剁礉娴ｅ棗澧虹粋?F9 闂堛垺婢橀幍鈧棁鈧惃鍕吂閹撮顏禒锝囩垳閿涘潏om.livespectate.client閿?// 娑撳海濮搁幀浣告倱濮濄儰鍞惍渚婄礄com.livespectate.network閿涘绱濋崣顏冪箽閻ｆ瑥鎳℃禒銈冣偓渚€妾担鎾扁偓浣界枂閹诡潿鈧胶娴夐張鐑樻篂閸氭垿鏀ｇ€规哎鈧?// 閸忣剙鍙℃禒锝囩垳娑撳秴绱╅悽銊ㄧ箹娑撱倓閲滈崠鍜冪礉閹碘偓娴犮儱骞撻幒澶夌閸氬簼绮涢弰顖欑娑擃亜鐣弫鏉戝讲閻劎娈戠痪顖涙箛閸旓紕顏Ο锛勭矋閿?//   build/libs/livespectate-neoforge-1.21.1-<version>-server.jar
+//
+// 濞夈劍鍓伴敍姘⒈娑?jar 閻?modId 閻╃鎮撻敍灞藉涧閼虫垝绨╅柅澶夌閺€鎹愮箻 mods/閿涘奔绗夌憰浣告倱閺冩儼顥婇妴?// ---------------------------------------------------------------------------
+tasks.register('serverJar', Jar) {
+    group = 'build'
+    description = 'Server-only jar: same mod without the F9 panel (client + network code stripped).'
+    archiveClassifier = 'server'
+    from sourceSets.main.output
+    exclude 'com/livespectate/client/**'
+    exclude 'com/livespectate/network/**'
+    exclude 'assets/**'
+    manifest {
+        attributes([
+                'Specification-Title'   : 'LiveSpectate (server-only)',
+                'Specification-Version' : '1',
+                'Implementation-Title'  : 'LiveSpectate',
+                'Implementation-Version': project.version
+        ])
+    }
+}
+
+tasks.named('assemble') {
+    dependsOn tasks.named('serverJar')
+}
