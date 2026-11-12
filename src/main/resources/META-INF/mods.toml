@@ -1,0 +1,35 @@
+modLoader = "javafml"
+loaderVersion = "[47,)"
+license = "MIT"
+issueTrackerURL = "https://example.invalid/livespectate/issues"
+
+[[mods]]
+modId = "livespectate"
+version = "1.1.1"
+displayName = "LiveSpectate"
+authors = "LiveSpectate contributors"
+description = '''
+服务端旁观/附体直播模组 (Forge 1.20.1)。
+
+/livespectate <玩家>          附体到某个玩家视角
+/livespectate auto start [秒]  定时自动切换附体目标
+/livespectate auto stop       停止自动轮换（保持当前附体）
+/livespectate auto status     查看自动轮换状态
+/livespectate auto next       立即切换到下一个目标
+/livespectate stop            停止轮换并退出附体，恢复原状态
+/livespectate reload          重载配置文件
+'''
+
+[[dependencies.livespectate]]
+modId = "forge"
+mandatory = true
+versionRange = "[47,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.livespectate]]
+modId = "minecraft"
+mandatory = true
+versionRange = "[1.20.1,1.21)"
+ordering = "NONE"
+side = "BOTH"

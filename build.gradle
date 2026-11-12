@@ -1,0 +1,98 @@
+plugins {
+    id 'java'
+    id 'net.minecraftforge.gradle' version '[6.0.16,6.2)'
+}
+
+group = 'com.livespectate'
+version = '1.1.1'
+base {
+    archivesName = 'livespectate-forge-1.20.1'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+minecraft {
+    mappings channel: 'official', version: '1.20.1'
+
+    runs {
+        client {
+            workingDirectory project.file('run')
+            mods {
+                livespectate {
+                    source sourceSets.main
+                }
+            }
+        }
+        server {
+            workingDirectory project.file('run')
+            args '--nogui'
+            mods {
+                livespectate {
+                    source sourceSets.main
+                }
+            }
+        }
+    }
+}
+
+repositories {
+    maven {
+        name = 'MinecraftForge'
+        url = 'https://maven.minecraftforge.net/'
+    }
+    mavenCentral()
+}
+
+dependencies {
+    minecraft 'net.minecraftforge:forge:1.20.1-47.2.0'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 17
+}
+
+tasks.named('jar', Jar) {
+    manifest {
+        attributes([
+                'Specification-Title'   : 'LiveSpectate',
+                'Specification-Version' : '1',
+                'Implementation-Title'  : 'LiveSpectate',
+                'Implementation-Version': project.version
+        ])
+    }
+}
+
+// ---------------------------------------------------------------------------
+// 服务端精简版：剥离 F9 面板所需的客户端代码（com.livespectate.client）
+// 与状态同步代码（com.livespectate.network）。
+// 两个 jar 的 modId 相同，只能二选一放进 mods/。
+// ---------------------------------------------------------------------------
+tasks.register('serverJar', Jar) {
+    group = 'build'
+    description = 'Server-only jar: same mod without the F9 panel (client + network code stripped).'
+    archiveClassifier = 'server'
+    // 关键：必须从 reobfJar 之后的产物里切，否则保留的是开发期官方映射名
+    // （Commands.literal 之类），正式 Forge 服务端会 NoSuchMethodError。
+    dependsOn 'reobfJar'
+    from({ zipTree(tasks.jar.archiveFile.get().asFile) })
+    exclude 'com/livespectate/client/**'
+    exclude 'com/livespectate/network/**'
+    exclude 'assets/**'
+    manifest {
+        attributes([
+                'Specification-Title'   : 'LiveSpectate (server-only)',
+                'Specification-Version' : '1',
+                'Implementation-Title'  : 'LiveSpectate',
+                'Implementation-Version': project.version
+        ])
+    }
+}
+
+tasks.named('assemble') {
+    dependsOn tasks.named('serverJar')
+}
